@@ -104,7 +104,7 @@
   .lead-next b{color:var(--blue)}
   .lead-actions{display:flex; gap:8px; margin-top:9px}
   .mini{border:1px solid var(--line); background:#F7FAFE; color:var(--ink); font-size:12px; font-weight:600; padding:6px 12px; border-radius:8px; cursor:pointer}
-  .mini.del{color:var(--gold-d); border-color:#EAD9A4; background:#FCF7E8}
+  .mini.del{color:#fff; border-color:var(--gold-d); background:var(--gold-d); font-weight:700}
   .empty{text-align:center; color:var(--muted); font-size:13px; padding:26px 10px}
 
   .banner{background:#FBF2D6; color:var(--gold-d); border:1px solid #EAD9A4; border-radius:10px; padding:10px 12px; font-size:12.5px; margin-bottom:14px; display:none}
@@ -196,7 +196,7 @@
     {key:"charging", label:"Charging today", opts:[["Contact / plug",4],["Inductive",3],["None yet",2],["Unknown",1]]},
     {key:"fleet", label:"Fleet size", opts:[["<10",1],["10–50",2],["50–200",3],["200+",4]]},
     {key:"pain", label:"Charging pain", opts:[["None",0],["Some",2],["Significant",4]]},
-    {key:"power", label:"Power need (multiple OK)", multi:true, opts:[["50 W",1],["500 W",2],["1 kW",3],["10 kW",3],[">10 kW",1],["Unknown",1]]},
+    {key:"power", label:"Power need (multiple OK)", multi:true, opts:[["50 W",1],["500 W",2],["1 kW",3],["3 kW",3],["10 kW",3],[">10 kW",1],["Unknown",1]]},
     {key:"spec", label:"Owns charging spec", opts:[["They do",3],["Shared",2],["End customer",1]]},
     {key:"env", label:"Environment", opts:[["Paint / dirty / clean edge",3],["Standard",1]]}
   ];
