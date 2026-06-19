@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Lead Scout — Power Wave</title>
+<style>
+  :root{
+    --ink:#0B2A4A; --blue:#1D5FD0; --blue-d:#16459b; --gold:#C9A227; --gold-d:#a6841c;
+    --slate:#64748B; --bg:#EEF3FA; --card:#FFFFFF; --line:#D8E2EF; --muted:#6B7A90;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.4;
+    padding-bottom:40px;
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+
+  /* Header */
+  header{
+    position:sticky; top:0; z-index:20; background:var(--ink); color:#fff;
+    padding:max(10px,env(safe-area-inset-top)) 14px 10px;
+    display:flex; align-items:center; gap:10px;
+    box-shadow:0 2px 10px rgba(11,42,74,.18);
+  }
+  header .bolt{font-size:20px; color:var(--gold)}
+  header h1{font-size:15px; margin:0; font-weight:700; letter-spacing:.2px; flex:1; min-width:64px}
+  header h1 small{display:block; font-weight:500; font-size:10px; color:#9DBBE6; letter-spacing:.2px; white-space:nowrap}
+  .counts{display:flex; gap:6px; font-size:11px}
+  .pill{background:rgba(255,255,255,.12); padding:3px 8px; border-radius:20px; white-space:nowrap}
+  .pill b{color:var(--gold)}
+  .menu-btn{background:rgba(255,255,255,.14); border:0; color:#fff; width:34px; height:34px; border-radius:9px; font-size:18px}
+  .link-btn{display:inline-flex; align-items:center; gap:3px; background:rgba(255,255,255,.12); color:#fff; text-decoration:none; font-size:11px; font-weight:600; padding:7px 9px; border-radius:8px; white-space:nowrap}
+
+  main{max-width:640px; margin:0 auto; padding:14px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px}
+  .sec-title{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--blue); margin:0 0 10px}
+
+  /* Inputs */
+  label.fl{display:block; font-size:11px; font-weight:600; color:var(--muted); margin:10px 0 4px; text-transform:uppercase; letter-spacing:.4px}
+  input[type=text], textarea{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:11px 12px;
+    font-size:16px; color:var(--ink); background:#FBFDFF; font-family:inherit;
+  }
+  input[type=text]:focus, textarea:focus{outline:2px solid var(--blue); border-color:var(--blue)}
+  textarea{min-height:60px; resize:vertical}
+  .row2{display:flex; gap:10px}
+  .row2 > div{flex:1}
+
+  /* Chip groups */
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{
+    border:1px solid var(--line); background:#F7FAFE; color:var(--ink);
+    padding:8px 11px; border-radius:9px; font-size:13px; font-weight:500;
+    min-height:38px; cursor:pointer; transition:.12s;
+  }
+  .chip.on{background:var(--blue); border-color:var(--blue); color:#fff; font-weight:600}
+
+  /* Score gauge — the signature */
+  .gauge{
+    position:sticky; bottom:0; z-index:15; margin:14px -14px -14px; padding:12px 14px;
+    background:linear-gradient(180deg,#fff, #F4F8FE); border-top:1px solid var(--line);
+    border-radius:0 0 14px 14px;
+  }
+  .gauge-top{display:flex; align-items:center; gap:10px; margin-bottom:8px}
+  .score{font-size:30px; font-weight:700; line-height:1}
+  .score small{font-size:13px; color:var(--muted); font-weight:500}
+  .tier-badge{margin-left:auto; font-size:12px; font-weight:700; padding:5px 11px; border-radius:20px; letter-spacing:.4px}
+  .track{height:12px; background:#E3EAF4; border-radius:8px; overflow:hidden}
+  .fill{height:100%; width:0; border-radius:8px; transition:width .35s ease, background .35s}
+  .t-hot{color:var(--gold-d)} .b-hot{background:var(--gold)}
+  .t-warm{color:var(--blue)} .b-warm{background:var(--blue)}
+  .t-cool{color:var(--slate)} .b-cool{background:var(--slate)}
+  .pill-hot{background:#FBF2D6; color:var(--gold-d)}
+  .pill-warm{background:#E4EEFB; color:var(--blue)}
+  .pill-cool{background:#EAEEF3; color:var(--slate)}
+
+  .btn{display:block; width:100%; border:0; border-radius:11px; padding:14px; font-size:15px; font-weight:700; cursor:pointer; margin-top:10px}
+  .btn-primary{background:var(--blue); color:#fff}
+  .btn-primary:active{background:var(--blue-d)}
+  .btn-ghost{background:transparent; color:var(--muted); font-weight:600; font-size:13px; padding:8px; margin-top:6px}
+  .editing-bar{display:none; background:#FBF2D6; color:var(--gold-d); font-size:12px; font-weight:600; padding:8px 12px; border-radius:9px; margin-bottom:6px; align-items:center; justify-content:space-between}
+
+  /* List */
+  .list-head{display:flex; align-items:center; gap:8px; margin-bottom:10px}
+  .list-head .sec-title{margin:0; flex:1}
+  .sortbtn{border:1px solid var(--line); background:#fff; color:var(--ink); font-size:12px; font-weight:600; padding:6px 10px; border-radius:8px; cursor:pointer}
+  .sortbtn.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+  #search{margin-bottom:10px}
+
+  .lead{display:flex; gap:0; border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:9px; background:#fff}
+  .stripe{width:6px; flex:none}
+  .s-hot{background:var(--gold)} .s-warm{background:var(--blue)} .s-cool{background:var(--slate)}
+  .lead-body{flex:1; padding:11px 12px}
+  .lead-top{display:flex; align-items:baseline; gap:8px}
+  .lead-name{font-weight:700; font-size:15px; flex:1}
+  .lead-score{font-size:15px; font-weight:700}
+  .lead-meta{font-size:12px; color:var(--muted); margin-top:2px}
+  .lead-sum{font-size:12.5px; margin-top:6px; color:var(--ink)}
+  .lead-next{font-size:12.5px; margin-top:5px}
+  .lead-next b{color:var(--blue)}
+  .lead-actions{display:flex; gap:8px; margin-top:9px}
+  .mini{border:1px solid var(--line); background:#F7FAFE; color:var(--ink); font-size:12px; font-weight:600; padding:6px 12px; border-radius:8px; cursor:pointer}
+  .mini.del{color:var(--gold-d); border-color:#EAD9A4; background:#FCF7E8}
+  .empty{text-align:center; color:var(--muted); font-size:13px; padding:26px 10px}
+
+  .banner{background:#FBF2D6; color:var(--gold-d); border:1px solid #EAD9A4; border-radius:10px; padding:10px 12px; font-size:12.5px; margin-bottom:14px; display:none}
+
+  /* Menu sheet */
+  .sheet-bg{position:fixed; inset:0; background:rgba(11,42,74,.45); z-index:40; display:none}
+  .sheet{position:fixed; left:0; right:0; bottom:0; z-index:41; background:#fff; border-radius:16px 16px 0 0; padding:14px 14px max(20px,env(safe-area-inset-bottom)); display:none; max-width:640px; margin:0 auto}
+  .sheet h3{margin:4px 0 12px; font-size:14px}
+  .sheet .mrow{display:flex; gap:10px; margin-bottom:9px}
+  .sheet .mrow .btn{margin:0; flex:1; background:#F2F6FC; color:var(--ink); font-size:14px}
+  .sheet .danger{background:#FCF2F2 !important; color:#9a5b1c !important}
+  .sheet .close{background:transparent; color:var(--muted); font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <span class="bolt">⚡</span>
+  <h1>Lead Scout<small>POWER WAVE · AUTOMATE 2026</small></h1>
+  <span class="pill"><b id="cTotal">0</b> · <b id="cHot" style="color:var(--gold)">0</b> hot</span>
+  <a class="link-btn" href="../pw-bd/" title="Open BD pipeline">Pipeline ↗</a>
+  <button class="menu-btn" id="menuBtn" aria-label="Menu">⋯</button>
+</header>
+
+<main>
+  <div class="banner" id="storeWarn">Storage isn't available in this preview. Open this file in your phone's browser (Safari/Chrome) to save leads between sessions.</div>
+
+  <div class="card">
+    <p class="sec-title" id="formTitle">New lead</p>
+    <div class="editing-bar" id="editBar"><span>Editing existing lead</span><button class="mini" id="cancelEdit">Cancel</button></div>
+
+    <label class="fl">Company</label>
+    <input type="text" id="company" autocapitalize="words" placeholder="e.g. Noovelia">
+    <div class="row2">
+      <div><label class="fl">Contact / role</label><input type="text" id="contact" placeholder="Name, title"></div>
+      <div><label class="fl">Booth</label><input type="text" id="booth" placeholder="#4381"></div>
+    </div>
+
+    <div id="chipFields"></div>
+
+    <label class="fl">Next step</label>
+    <input type="text" id="next" placeholder="e.g. Send tech eval, follow up after show">
+    <label class="fl">Notes</label>
+    <textarea id="notes" placeholder="Charging pain, who to reach, anything said…"></textarea>
+
+    <div class="gauge">
+      <div class="gauge-top">
+        <span class="score mono"><span id="scoreNum">0</span><small>/100</small></span>
+        <span class="tier-badge pill-cool" id="tierBadge">COOL</span>
+      </div>
+      <div class="track"><div class="fill b-cool" id="fill"></div></div>
+      <button class="btn btn-primary" id="saveBtn">Save lead</button>
+      <button class="btn-ghost" id="clearForm">Clear form</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="list-head">
+      <p class="sec-title">Captured leads</p>
+      <button class="sortbtn on" id="sortScore" data-sort="score">Score</button>
+      <button class="sortbtn" id="sortRecent" data-sort="recent">Recent</button>
+    </div>
+    <input type="text" id="search" placeholder="Search company, booth, notes…">
+    <div id="list"></div>
+  </div>
+</main>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet">
+  <h3>Data &amp; backup</h3>
+  <div class="mrow">
+    <button class="btn" id="expCsv">Export CSV</button>
+    <button class="btn" id="expJson">Export JSON</button>
+  </div>
+  <div class="mrow">
+    <button class="btn" id="impBtn">Import JSON</button>
+    <button class="btn danger" id="clearAll">Delete all</button>
+  </div>
+  <input type="file" id="impFile" accept="application/json,.json" style="display:none">
+  <button class="btn close" id="closeSheet">Close</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "pw_leadscout_v1";
+
+  var FIELDS = [
+    {key:"category", label:"Category", opts:[["AMR maker",3],["Fleet SW (channel)",3],["Operator",2],["Component / integrator",2],["Other",1]]},
+    {key:"charging", label:"Charging today", opts:[["Contact / plug",4],["Inductive",3],["None yet",2],["Unknown",1]]},
+    {key:"fleet", label:"Fleet size", opts:[["<10",1],["10–50",2],["50–200",3],["200+",4]]},
+    {key:"pain", label:"Charging pain", opts:[["None",0],["Some",2],["Significant",4]]},
+    {key:"power", label:"Power need (multiple OK)", multi:true, opts:[["50 W",1],["500 W",2],["1 kW",3],["10 kW",3],[">10 kW",1],["Unknown",1]]},
+    {key:"spec", label:"Owns charging spec", opts:[["They do",3],["Shared",2],["End customer",1]]},
+    {key:"env", label:"Environment", opts:[["Paint / dirty / clean edge",3],["Standard",1]]}
+  ];
+  var MAX = 0; FIELDS.forEach(function(f){ MAX += Math.max.apply(null, f.opts.map(function(o){return o[1];})) + (f.multi?1:0); });
+
+  // ---- storage ----
+  var canStore = true;
+  try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); } catch(e){ canStore = false; }
+  if(!canStore){ document.getElementById("storeWarn").style.display="block"; }
+
+  function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; } }
+  function save(arr){ try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch(e){} }
+
+  var leads = load();
+  var sel = {};        // current form scoring selections
+  var editingId = null;
+  var sortBy = "score";
+
+  // ---- build chip fields ----
+  var wrap = document.getElementById("chipFields");
+  FIELDS.forEach(function(f){
+    var lab = document.createElement("label"); lab.className="fl"; lab.textContent=f.label; wrap.appendChild(lab);
+    var box = document.createElement("div"); box.className="chips"; box.dataset.key=f.key;
+    f.opts.forEach(function(o){
+      var c = document.createElement("button"); c.type="button"; c.className="chip";
+      c.textContent=o[0]; c.dataset.val=o[1]; c.dataset.text=o[0];
+      c.addEventListener("click", function(){
+        if(f.multi){
+          var arr = Array.isArray(sel[f.key]) ? sel[f.key] : [];
+          var hit = -1; for(var i=0;i<arr.length;i++){ if(arr[i].text===o[0]) hit=i; }
+          if(hit>=0){ arr.splice(hit,1); c.classList.remove("on"); }
+          else { arr.push({val:Number(o[1]), text:o[0]}); c.classList.add("on"); }
+          if(arr.length) sel[f.key]=arr; else delete sel[f.key];
+        } else {
+          var on = sel[f.key] && sel[f.key].text === o[0];
+          Array.prototype.forEach.call(box.children, function(ch){ ch.classList.remove("on"); });
+          if(on){ delete sel[f.key]; } else { c.classList.add("on"); sel[f.key] = {val:Number(o[1]), text:o[0]}; }
+        }
+        updateGauge();
+      });
+      box.appendChild(c);
+    });
+    wrap.appendChild(box);
+  });
+
+  function rawScore(s){ var t=0; for(var k in s){ var v=s[k];
+    if(Array.isArray(v)){ var mx=0; v.forEach(function(o){ if(o.val>mx) mx=o.val; }); t += mx + (v.length>=2?1:0); }
+    else { t += v.val; } } return t; }
+  function pct(s){ return Math.round(rawScore(s)/MAX*100); }
+  function tierOf(p){ return p>=70 ? "hot" : p>=45 ? "warm" : "cool"; }
+  function tierLabel(t){ return t.toUpperCase(); }
+
+  function updateGauge(){
+    var p = pct(sel), t = tierOf(p);
+    document.getElementById("scoreNum").textContent = p;
+    var fill = document.getElementById("fill");
+    fill.style.width = p + "%";
+    fill.className = "fill b-" + t;
+    var badge = document.getElementById("tierBadge");
+    badge.textContent = tierLabel(t);
+    badge.className = "tier-badge pill-" + t;
+  }
+
+  // ---- save / edit ----
+  document.getElementById("saveBtn").addEventListener("click", function(){
+    var company = document.getElementById("company").value.trim();
+    if(!company){ document.getElementById("company").focus(); return; }
+    var rec = {
+      id: editingId || (Date.now()+"-"+Math.random().toString(36).slice(2,7)),
+      company: company,
+      contact: document.getElementById("contact").value.trim(),
+      booth: document.getElementById("booth").value.trim(),
+      next: document.getElementById("next").value.trim(),
+      notes: document.getElementById("notes").value.trim(),
+      sel: JSON.parse(JSON.stringify(sel)),
+      score: pct(sel),
+      tier: tierOf(pct(sel)),
+      ts: editingId ? (findLead(editingId).ts) : Date.now()
+    };
+    if(editingId){ leads = leads.map(function(l){ return l.id===editingId ? rec : l; }); }
+    else { leads.push(rec); }
+    save(leads); resetForm(); render();
+    window.scrollTo({top:document.querySelector(".list-head").offsetTop-60, behavior:"smooth"});
+  });
+
+  function findLead(id){ return leads.filter(function(l){return l.id===id;})[0]; }
+
+  function resetForm(){
+    editingId = null; sel = {};
+    ["company","contact","booth","next","notes"].forEach(function(i){ document.getElementById(i).value=""; });
+    document.querySelectorAll(".chip.on").forEach(function(c){ c.classList.remove("on"); });
+    document.getElementById("formTitle").textContent="New lead";
+    document.getElementById("editBar").style.display="none";
+    document.getElementById("saveBtn").textContent="Save lead";
+    updateGauge();
+  }
+  document.getElementById("clearForm").addEventListener("click", resetForm);
+  document.getElementById("cancelEdit").addEventListener("click", resetForm);
+
+  function editLead(id){
+    var l = findLead(id); if(!l) return;
+    editingId = id;
+    document.getElementById("company").value=l.company||"";
+    document.getElementById("contact").value=l.contact||"";
+    document.getElementById("booth").value=l.booth||"";
+    document.getElementById("next").value=l.next||"";
+    document.getElementById("notes").value=l.notes||"";
+    sel = JSON.parse(JSON.stringify(l.sel||{}));
+    // reflect chips
+    document.querySelectorAll(".chips").forEach(function(box){
+      var key = box.dataset.key, v = sel[key];
+      Array.prototype.forEach.call(box.children, function(ch){
+        var on = Array.isArray(v) ? v.some(function(o){return o.text===ch.dataset.text;}) : (v && v.text===ch.dataset.text);
+        ch.classList.toggle("on", on);
+      });
+    });
+    document.getElementById("formTitle").textContent="Edit lead";
+    document.getElementById("editBar").style.display="flex";
+    document.getElementById("saveBtn").textContent="Update lead";
+    updateGauge();
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function delLead(id){
+    var l = findLead(id);
+    if(!confirm("Delete "+(l?l.company:"this lead")+"?")) return;
+    leads = leads.filter(function(x){return x.id!==id;});
+    save(leads); render();
+  }
+
+  // ---- render list ----
+  function summary(l){
+    var s=l.sel||{}, bits=[];
+    if(s.charging) bits.push(s.charging.text+" charging");
+    if(s.fleet) bits.push("fleet "+s.fleet.text);
+    if(s.pain) bits.push(s.pain.text.toLowerCase()+" pain");
+    if(s.power) bits.push(Array.isArray(s.power)? s.power.map(function(o){return o.text;}).join("/") : s.power.text);
+    return bits.join(" · ");
+  }
+  function esc(t){ return (t||"").replace(/[<>&]/g, function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c];}); }
+
+  function render(){
+    document.getElementById("cTotal").textContent = leads.length;
+    document.getElementById("cHot").textContent = leads.filter(function(l){return l.tier==="hot";}).length;
+
+    var q = (document.getElementById("search").value||"").toLowerCase();
+    var view = leads.filter(function(l){
+      if(!q) return true;
+      return (l.company+" "+l.booth+" "+l.contact+" "+l.notes+" "+l.next).toLowerCase().indexOf(q)>=0;
+    });
+    view.sort(function(a,b){ return sortBy==="score" ? (b.score-a.score)||(b.ts-a.ts) : (b.ts-a.ts); });
+
+    var list = document.getElementById("list");
+    if(view.length===0){
+      list.innerHTML = '<div class="empty">'+(leads.length? "No matches." : "No leads yet — capture your first at the booth.")+'</div>';
+      return;
+    }
+    list.innerHTML = view.map(function(l){
+      var sum = summary(l);
+      return '<div class="lead">'
+        + '<div class="stripe s-'+l.tier+'"></div>'
+        + '<div class="lead-body">'
+        +   '<div class="lead-top"><span class="lead-name">'+esc(l.company)+'</span>'
+        +     '<span class="lead-score t-'+l.tier+' mono">'+l.score+'</span></div>'
+        +   '<div class="lead-meta">'+(l.booth?esc(l.booth)+' · ':'')+(l.sel&&l.sel.category?esc(l.sel.category.text):'—')+(l.contact?' · '+esc(l.contact):'')+'</div>'
+        +   (sum? '<div class="lead-sum">'+esc(sum)+'</div>':'')
+        +   (l.next? '<div class="lead-next"><b>Next:</b> '+esc(l.next)+'</div>':'')
+        +   (l.notes? '<div class="lead-next" style="color:var(--muted)">'+esc(l.notes)+'</div>':'')
+        +   '<div class="lead-actions"><button class="mini" data-edit="'+l.id+'">Edit</button>'
+        +     '<button class="mini del" data-del="'+l.id+'">Delete</button></div>'
+        + '</div></div>';
+    }).join("");
+    list.querySelectorAll("[data-edit]").forEach(function(b){ b.onclick=function(){ editLead(b.dataset.edit); }; });
+    list.querySelectorAll("[data-del]").forEach(function(b){ b.onclick=function(){ delLead(b.dataset.del); }; });
+  }
+
+  document.getElementById("search").addEventListener("input", render);
+  document.getElementById("sortScore").addEventListener("click", function(){ setSort("score"); });
+  document.getElementById("sortRecent").addEventListener("click", function(){ setSort("recent"); });
+  function setSort(s){
+    sortBy=s;
+    document.getElementById("sortScore").classList.toggle("on", s==="score");
+    document.getElementById("sortRecent").classList.toggle("on", s==="recent");
+    render();
+  }
+
+  // ---- menu / export / import ----
+  var sheet=document.getElementById("sheet"), bg=document.getElementById("sheetBg");
+  function openSheet(){ sheet.style.display="block"; bg.style.display="block"; }
+  function closeSheet(){ sheet.style.display="none"; bg.style.display="none"; }
+  document.getElementById("menuBtn").onclick=openSheet;
+  document.getElementById("closeSheet").onclick=closeSheet;
+  bg.onclick=closeSheet;
+
+  function dl(name, text, type){
+    var b=new Blob([text],{type:type}); var u=URL.createObjectURL(b);
+    var a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(u); a.remove(); },100);
+  }
+  function stamp(){ var d=new Date(); return d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+"-"+("0"+d.getHours()).slice(-2)+("0"+d.getMinutes()).slice(-2); }
+
+  document.getElementById("expJson").onclick=function(){
+    dl("powerwave-leads-"+stamp()+".json", JSON.stringify(leads,null,2), "application/json"); closeSheet();
+  };
+  document.getElementById("expCsv").onclick=function(){
+    var cols=["Company","Contact","Booth","Category","Charging","Fleet","Pain","Power","SpecOwner","Environment","Score","Tier","NextStep","Notes","Captured"];
+    function q(v){ v=(v==null?"":String(v)); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+    function g(l,k){ var v=l.sel&&l.sel[k]; if(!v) return ""; return Array.isArray(v)? v.map(function(o){return o.text;}).join(" / ") : v.text; }
+    var rows=leads.map(function(l){
+      return [l.company,l.contact,l.booth,g(l,"category"),g(l,"charging"),g(l,"fleet"),g(l,"pain"),g(l,"power"),g(l,"spec"),g(l,"env"),l.score,l.tier,l.next,l.notes, new Date(l.ts).toLocaleString()].map(q).join(",");
+    });
+    dl("powerwave-leads-"+stamp()+".csv", cols.join(",")+"\n"+rows.join("\n"), "text/csv"); closeSheet();
+  };
+  document.getElementById("impBtn").onclick=function(){ document.getElementById("impFile").click(); };
+  document.getElementById("impFile").onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var data=JSON.parse(r.result);
+        if(!Array.isArray(data)) throw 0;
+        var mode = confirm("Import "+data.length+" leads.\nOK = merge with current, Cancel = replace all.");
+        if(mode){ var ids={}; leads.forEach(function(l){ids[l.id]=1;}); data.forEach(function(l){ if(!ids[l.id]) leads.push(l); }); }
+        else { leads = data; }
+        save(leads); render(); closeSheet();
+      }catch(err){ alert("That file couldn't be read as a leads export."); }
+    };
+    r.readAsText(f); e.target.value="";
+  };
+  document.getElementById("clearAll").onclick=function(){
+    if(!confirm("Delete ALL "+leads.length+" leads? Export first if you want a backup.")) return;
+    if(!confirm("This can't be undone. Delete everything?")) return;
+    leads=[]; save(leads); render(); closeSheet();
+  };
+
+  updateGauge(); render();
+})();
+</script>
+</body>
+</html>
